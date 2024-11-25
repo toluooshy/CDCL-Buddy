@@ -414,6 +414,7 @@ const App = () => {
       setDecisions(lastState.decisions);
       setFormulaSatisfied(false);
       setUnsatFormula(false);
+      setCurrentLevel(currentLevel - 1);
     }
   };
 
@@ -424,6 +425,7 @@ const App = () => {
       setHistory((prev) => [...prev, { activeVariables, decisions }]);
       setActiveVariables(nextState.activeVariables);
       setDecisions(nextState.decisions);
+      setCurrentLevel(currentLevel + 1);
     }
   };
 
