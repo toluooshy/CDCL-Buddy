@@ -305,6 +305,7 @@ const Clause = ({ clause, activeVariables }) => {
         fontSize: 12,
         borderRadius: 5,
         height: "fit-content",
+        userSelect: "auto",
       }}
     >
       C{clause.id}: (
@@ -864,6 +865,7 @@ const App = () => {
         left: 0,
         right: 0,
         overflowY: "scroll",
+        userSelect: "none",
       }}
     >
       <div
@@ -1260,9 +1262,6 @@ const App = () => {
               ) : null}
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  flexWrap: "wrap",
                   overflowY: "scroll",
                   height: 180,
                   backgroundColor: "#707682",
@@ -1271,13 +1270,21 @@ const App = () => {
                   padding: "0px 10px",
                 }}
               >
-                {clauses.map((clause, index) => (
-                  <Clause
-                    key={index}
-                    clause={clause}
-                    activeVariables={activeVariables}
-                  />
-                ))}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {clauses.map((clause, index) => (
+                    <Clause
+                      key={index}
+                      clause={clause}
+                      activeVariables={activeVariables}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
