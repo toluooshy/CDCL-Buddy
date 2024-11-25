@@ -15,6 +15,8 @@ import {
 
 import "@xyflow/react/dist/style.css";
 
+import "./App.css";
+
 const VariableBox = ({
   variableName,
   isPositive,
@@ -46,9 +48,10 @@ const VariableBox = ({
       onDragStart={active ? handleDragStart : null}
       onClick={active ? handleClick : null}
       style={{
+        userSelect: "none",
         margin: "5px",
         padding: "4px 8px 4px 8px",
-        backgroundColor: isPositive ? "green" : "red",
+        backgroundColor: "#2b6bba",
         color: "white",
         borderRadius: "5px",
         cursor: "pointer",
@@ -67,9 +70,9 @@ const CustomNode = ({ data }) => {
       style={{
         padding: "12.5px 15px",
         border: `1px solid ${
-          data.conflict ? "#dd9999" : data.implied ? "#f8f8f8" : "#99dd99"
+          data.conflict ? "#c24c46" : data.implied ? "#f8f8f8" : "#4b8dde"
         }`,
-        color: data.conflict ? "#dd9999" : data.implied ? "#f8f8f8" : "#99dd99",
+        color: data.conflict ? "#c24c46" : data.implied ? "#f8f8f8" : "#4b8dde",
         borderRadius: "100%",
         textAlign: "center",
         width: "fit-content",
@@ -138,7 +141,7 @@ const CustomEdge = ({
               color: "#ffffff",
               background: "none",
               padding: 0,
-              fontSize: "12px",
+              fontSize: 14,
               pointerEvents: "none", // Prevent interfering with edge interactions
             }}
           >
@@ -224,7 +227,7 @@ const PlayzoneGraph = ({ playzoneData, onDropVariable, active }) => {
             source: source.replace("-", ""),
             target: key,
             data: {
-              label: `Clause ${value.clauseid}`,
+              label: `C${value.clauseid}`,
             },
             animated: true,
             markerEnd: {
@@ -277,7 +280,7 @@ const PlayzoneGraph = ({ playzoneData, onDropVariable, active }) => {
         fitView
       >
         <Controls />
-        <Background color="#aaa" gap={16} />
+        <Background color="#aaa" gap={16} size={0.75} />
       </ReactFlow>
     </div>
   );
@@ -851,7 +854,7 @@ const App = () => {
   return (
     <div
       style={{
-        fontFamily: "Arial, sans-serif",
+        fontFamily: "Sono, serif, Arial, sans-serif",
         backgroundColor: "#323741",
         position: "fixed",
         top: 0,
@@ -882,6 +885,7 @@ const App = () => {
               WebkitTextFillColor: "transparent",
               fontSize: 32,
               fontWeight: 600,
+              marginBottom: 10,
               width: "fit-content",
             }}
           >
@@ -892,7 +896,7 @@ const App = () => {
               flex: 1,
               padding: 0,
               marginLeft: 10,
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: 600,
               width: "fit-content",
             }}
@@ -987,7 +991,7 @@ const App = () => {
                 textAlign: "center",
               }}
             >
-              <p style={{ color: "#721c24", marginBottom: "15px" }}>
+              <p style={{ color: "#945f19", marginBottom: "15px" }}>
                 Conflict detected! A learned clause can be added. 🤔
               </p>
               <button
@@ -1000,21 +1004,22 @@ const App = () => {
                   borderRadius: 5,
                   cursor: "pointer",
                   margin: 5,
+                  marginRight: 10,
                   fontSize: "16px",
                 }}
               >
                 <span style={{ margin: 0, padding: 0 }}>
                   Add Learned Clause
                 </span>
-                <span style={{ marginLeft: 4, padding: 0, fontSize: 14 }}>
+                <span style={{ marginLeft: 4, padding: 0, fontSize: 12 }}>
                   💡
                 </span>
               </button>
               <button
                 onClick={() => setConflictModalVisible(false)}
                 style={{
-                  padding: "10px 20px",
-                  backgroundColor: "red",
+                  padding: "11px 20px",
+                  backgroundColor: "#000000",
                   color: "white",
                   border: "none",
                   borderRadius: "5px",
@@ -1061,8 +1066,8 @@ const App = () => {
               <button
                 onClick={() => setUnsatModalVisible(false)}
                 style={{
-                  padding: "10px 20px",
-                  backgroundColor: "red",
+                  padding: "11px 20px",
+                  backgroundColor: "#000000",
                   color: "white",
                   border: "none",
                   borderRadius: "5px",
@@ -1109,8 +1114,8 @@ const App = () => {
               <button
                 onClick={() => setSatModalVisible(false)}
                 style={{
-                  padding: "10px 20px",
-                  backgroundColor: "green",
+                  padding: "11px 20px",
+                  backgroundColor: "#000000",
                   color: "white",
                   border: "none",
                   borderRadius: "5px",

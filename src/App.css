@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "Sono";
+  src: local("Sono"), url("./Sono.ttf") format("truetype");
+}
+
 .App {
   text-align: center;
 }
@@ -37,6 +42,9 @@
   }
 }
 
+.body {
+  font-family: Sono, serif, Arial, sans-serif;
+}
 .play-zone {
   border: 2px dashed #ccc;
   border-radius: 8px;
