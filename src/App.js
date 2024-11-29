@@ -262,7 +262,7 @@ const PlayzoneGraph = ({ playzoneData, onDropVariable, active }) => {
     <div
       style={{
         width: "100%",
-        height: 320,
+        height: "49.5vh",
         margin: "5px auto",
         backgroundColor: "#13161d",
         borderRadius: 8,
