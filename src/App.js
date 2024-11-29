@@ -895,18 +895,6 @@ const App = () => {
           >
             CDCL Buddy
           </span>
-          <span
-            style={{
-              flex: 1,
-              padding: 0,
-              marginLeft: 10,
-              fontSize: 28,
-              fontWeight: 600,
-              width: "fit-content",
-            }}
-          >
-            🛸
-          </span>
         </div>
         <div
           style={{
@@ -921,7 +909,7 @@ const App = () => {
               margin: 0,
               marginRight: 20,
               color: "#f2ca74",
-              fontSize: 18,
+              fontSize: 14,
               width: "fit-content",
             }}
           >
@@ -932,7 +920,7 @@ const App = () => {
               padding: 0,
               margin: 0,
               color: "#f2ca74",
-              fontSize: 18,
+              fontSize: 14,
               width: "fit-content",
             }}
           >
