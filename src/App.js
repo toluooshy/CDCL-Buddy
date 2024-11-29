@@ -261,7 +261,7 @@ const PlayzoneGraph = ({ playzoneData, onDropVariable, active }) => {
     <div
       style={{
         width: "100%",
-        height: 300,
+        height: 320,
         margin: "5px auto",
         backgroundColor: "#13161d",
         borderRadius: 8,
@@ -1275,6 +1275,7 @@ const App = () => {
                     display: "flex",
                     justifyContent: "flex-start",
                     flexWrap: "wrap",
+                    paddingBottom: 10,
                   }}
                 >
                   {clauses.map((clause, index) => (
