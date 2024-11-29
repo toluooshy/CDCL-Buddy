@@ -16,6 +16,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import "./App.css";
+import menu from "./menu.svg";
 
 const VariableBox = ({
   variableName,
@@ -900,10 +901,11 @@ const App = () => {
           style={{
             flex: 0,
             display: "flex",
-            marginTop: 8,
+            marginRight: 8,
           }}
         >
-          <p
+          <img src={menu} />
+          {/* <p
             style={{
               padding: 0,
               margin: 0,
@@ -925,7 +927,7 @@ const App = () => {
             }}
           >
             About
-          </p>
+          </p> */}
         </div>
       </div>
       <div style={{ padding: 10 }}>
