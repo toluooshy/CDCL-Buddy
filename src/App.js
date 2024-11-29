@@ -887,7 +887,7 @@ const App = () => {
               background: "linear-gradient(to right, #f2ca74, #db69bb)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: 600,
               marginBottom: 10,
               width: "fit-content",
@@ -909,7 +909,7 @@ const App = () => {
               margin: 0,
               marginRight: 20,
               color: "#f2ca74",
-              fontSize: 14,
+              fontSize: 15,
               width: "fit-content",
             }}
           >
@@ -920,7 +920,7 @@ const App = () => {
               padding: 0,
               margin: 0,
               color: "#f2ca74",
-              fontSize: 14,
+              fontSize: 15,
               width: "fit-content",
             }}
           >
