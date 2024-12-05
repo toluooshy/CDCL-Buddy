@@ -904,7 +904,7 @@ const App = () => {
             marginRight: 8,
           }}
         >
-          <img src={menu} />
+          {/* <img src={menu} /> */}
           {/* <p
             style={{
               padding: 0,
