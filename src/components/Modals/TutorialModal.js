@@ -176,11 +176,6 @@ const TutorialModal = ({
       } catch (err) {
         console.error("Failed to copy URL to clipboard:", err);
       }
-      window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer,scrollbars=yes,resizable=yes"
-      );
     } else {
       window.open(url, "_blank", "noreferrer");
     }
@@ -468,12 +463,23 @@ const TutorialModal = ({
                   >
                     {currentPapers[currentPaperIndex].title} 🚀
                   </div>
-                  <div style={{ fontWeight: 600 }}>Summary:</div>
-                  <div style={{ marginBottom: 10 }}>
-                    {currentPapers[currentPaperIndex].summary}
+                  <div
+                    style={{
+                      fontSize: 13,
+                      overflowY: "scroll",
+                      height: 350,
+                      margin: "10px 0px 0px 0px",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>Summary:</div>
+                    <div style={{ marginBottom: 10 }}>
+                      {currentPapers[currentPaperIndex].summary}
+                    </div>
+                    <div style={{ fontWeight: 600 }}>
+                      Relation to CDCL Buddy:
+                    </div>
+                    <div>{currentPapers[currentPaperIndex].relation}</div>
                   </div>
-                  <div style={{ fontWeight: 600 }}>Relation to CDCL Buddy:</div>
-                  <div>{currentPapers[currentPaperIndex].relation}</div>
                 </div>
 
                 <div
