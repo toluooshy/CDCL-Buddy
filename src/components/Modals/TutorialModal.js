@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useWindowDimensions } from "../../utils/CustomHooks";
+
 import arrow from "../../arrow.svg";
 import graph1 from "../../images/graph1.png";
 import graph2 from "../../images/graph2.png";
@@ -12,6 +14,7 @@ const TutorialModal = ({
   learnedClauseHeuristic,
   setLearnedClauseHeuristic,
 }) => {
+  const dimensions = useWindowDimensions();
   const [activeTab, setActiveTab] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentPaperIndex, setCurrentPaperIndex] = useState(0);
@@ -169,10 +172,10 @@ const TutorialModal = ({
   const openInNewTab = async (url) => {
     const os = getOS();
     console.log(os);
-    if (os === "iOS" || os === "Android") {
+    if (os !== "iOS" && os !== "Android" && dimensions.width < 600) {
       try {
         await navigator.clipboard.writeText(url);
-        alert(`URL copied to clipboard:\n${url}`);
+        alert(`Paper link copied to clipboard. 🔗`);
       } catch (err) {
         console.error("Failed to copy URL to clipboard:", err);
       }
@@ -233,7 +236,6 @@ const TutorialModal = ({
               >
                 How to Use CDCL Buddy
               </div>
-              {getOS()}
               <img src={demo} style={{ width: "100%" }} />
               <div
                 style={{
