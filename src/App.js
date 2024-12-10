@@ -1,325 +1,14 @@
-import React, { useState, useEffect } from "react";
-import {
-  ReactFlow,
-  Controls,
-  Background,
-  applyNodeChanges,
-  applyEdgeChanges,
-  MarkerType,
-  Handle,
-  Position,
-  getBezierPath,
-  BaseEdge,
-  EdgeLabelRenderer,
-} from "@xyflow/react";
-
-import "@xyflow/react/dist/style.css";
+import { useState, useEffect } from "react";
 
 import "./App.css";
 import menu from "./menu.svg";
-
-const VariableBox = ({
-  variableName,
-  isPositive,
-  onToggle,
-  onDragStart,
-  active,
-}) => {
-  const handleDragStart = (e) => {
-    if (active) {
-      e.dataTransfer.setData(
-        "text/plain",
-        JSON.stringify({ name: variableName, positive: isPositive })
-      );
-      onDragStart(variableName, isPositive);
-    }
-  };
-
-  const handleClick = (e) => {
-    if (active) {
-      // Prevent drag from overriding the click event
-      e.stopPropagation();
-      onToggle(variableName);
-    }
-  };
-
-  return (
-    <div
-      draggable={active ? true : false}
-      onDragStart={active ? handleDragStart : null}
-      onClick={active ? handleClick : null}
-      style={{
-        userSelect: "none",
-        margin: "5px",
-        padding: "4px 8px 4px 8px",
-        backgroundColor: "#2b6bba",
-        color: "white",
-        borderRadius: "5px",
-        cursor: "pointer",
-        opacity: active ? 1 : 0.5,
-        fontSize: 13,
-      }}
-    >
-      {isPositive ? variableName : `¬${variableName}`}
-    </div>
-  );
-};
-
-const CustomNode = ({ data }) => {
-  return (
-    <div
-      style={{
-        padding: "12.5px 15px",
-        border: `1px solid ${
-          data.conflict ? "#c24c46" : data.implied ? "#f8f8f8" : "#4b8dde"
-        }`,
-        color: data.conflict ? "#c24c46" : data.implied ? "#f8f8f8" : "#4b8dde",
-        borderRadius: "100%",
-        textAlign: "center",
-        width: "fit-content",
-      }}
-    >
-      {data.label}
-      <Handle
-        type="source"
-        position={Position.Right}
-        style={{
-          background: "#ffffff",
-          borderRadius: "50%",
-          border: "1px solid #ffffff",
-        }}
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        style={{
-          type: "target",
-          background: "#ffffff",
-          borderRadius: "50%",
-          border: "1px solid #ffffff",
-        }}
-      />
-    </div>
-  );
-};
-
-// Register custom node type
-const nodeTypes = {
-  customNode: CustomNode,
-};
-
-const CustomEdge = ({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
-  data,
-}) => {
-  // Generate a Bezier path for the edge
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
-
-  return (
-    <>
-      {/* The edge line */}
-      <BaseEdge id={id} path={edgePath} />
-      {/* The edge label */}
-      {data.label && (
-        <EdgeLabelRenderer>
-          <div
-            style={{
-              position: "absolute",
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              color: "#ffffff",
-              background: "none",
-              padding: 0,
-              fontSize: 14,
-              pointerEvents: "none", // Prevent interfering with edge interactions
-            }}
-          >
-            {data.label}
-          </div>
-        </EdgeLabelRenderer>
-      )}
-    </>
-  );
-};
-
-const edgeTypes = {
-  customEdge: CustomEdge,
-};
-
-const PlayzoneGraph = ({ playzoneData, onDropVariable, active }) => {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
-
-  const levelSpacing = 100; // Vertical spacing between levels
-  const nodeSpacing = 120; // Horizontal spacing between nodes
-
-  const handleDragOver = (e) => {
-    if (active) {
-      e.preventDefault();
-    }
-  };
-
-  const handleDrop = (e) => {
-    if (active) {
-      e.preventDefault();
-      const item = JSON.parse(e.dataTransfer.getData("text/plain"));
-      onDropVariable(item);
-    }
-  };
-
-  // Generate nodes and edges based on playzoneData
-  useEffect(() => {
-    const initialNodes = [];
-    const initialEdges = [];
-    const levelGroups = {};
-
-    // Group nodes by levels
-    Object.entries(playzoneData).forEach(([key, value]) => {
-      if (!levelGroups[value.level]) {
-        levelGroups[value.level] = [];
-      }
-      levelGroups[value.level].push(key);
-    });
-
-    // Create nodes with default positions
-    Object.entries(playzoneData).forEach(([key, value]) => {
-      const levelIndex = levelGroups[value.level].indexOf(key);
-      const numNodesInLevel = levelGroups[value.level].length;
-
-      const xOffset =
-        250 -
-        (numNodesInLevel - 1) * (nodeSpacing / 2) +
-        levelIndex * nodeSpacing;
-      const yOffset =
-        value.level * (levelSpacing / 2) + (value.clauseid * nodeSpacing) / 5;
-
-      initialNodes.push({
-        id: key,
-        type: "customNode",
-        data: {
-          conflict: value.conflict,
-          implied: value.implied,
-          label: value.positive
-            ? `${key} @ ${value.level}`
-            : `-${key} @ ${value.level}`,
-        },
-        position: { x: xOffset, y: yOffset },
-        draggable: true,
-      });
-
-      // Add edges for implied relationships
-      if (value.implied && value.nodes.length > 0) {
-        value.nodes.forEach((source) => {
-          initialEdges.push({
-            id: `e-${source}-${key}`,
-            type: "customEdge",
-            source: source.replace("-", ""),
-            target: key,
-            data: {
-              label: `C${value.clauseid}`,
-            },
-            animated: true,
-            markerEnd: {
-              type: MarkerType.Arrow,
-              width: 20,
-              height: 20,
-              color: "#ffffff",
-            },
-          });
-        });
-      }
-    });
-
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [playzoneData]);
-
-  const onNodesChange = (changes) => {
-    if (nodes) {
-      setNodes((nodes) => applyNodeChanges(changes, nodes));
-    }
-  };
-
-  const onEdgesChange = (changes) => {
-    if (edges) {
-      setEdges((edges) => applyEdgeChanges(changes, edges));
-    }
-  };
-
-  return (
-    <div
-      style={{
-        width: "100%",
-        height: "49.5vh",
-        margin: "5px auto",
-        backgroundColor: "#13161d",
-        borderRadius: 8,
-      }}
-    >
-      <ReactFlow
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        proOptions={{ hideAttribution: true }}
-        fitView
-      >
-        <Controls />
-        <Background color="#aaa" gap={16} size={0.75} />
-      </ReactFlow>
-    </div>
-  );
-};
-
-const Clause = ({ clause, activeVariables }) => {
-  const isSatisfied = clause.data.some((literal) => {
-    const negated = literal.startsWith("-");
-    const variable = negated ? literal.substring(1) : literal;
-    return negated
-      ? activeVariables[variable] === false
-      : activeVariables[variable] === true;
-  });
-
-  return (
-    <div
-      style={{
-        margin: "10px 10px 0px 0px",
-        padding: "10px",
-        backgroundColor: isSatisfied ? "#d4edda" : "#f8d7da",
-        border: `1px solid ${isSatisfied ? "#c3e6cb" : "#f5c6cb"}`,
-        fontSize: 12,
-        borderRadius: 5,
-        height: "fit-content",
-        userSelect: "auto",
-      }}
-    >
-      C{clause.id}: (
-      {clause.data
-        .map(
-          (literal, index) =>
-            `${literal}${index < clause.data.length - 1 ? "∨" : ""}`
-        )
-        .join("")}
-      ) {clause.learned ? " 💡" : ""}
-    </div>
-  );
-};
+import VariableBox from "./components/UI/VariableBox";
+import Graph from "./components/Graph/Graph";
+import Clause from "./components/UI/Clause";
+import ConflictModal from "./components/Modals/ConflictModal";
+import SatModal from "./components/Modals/SatModal";
+import UnsatModal from "./components/Modals/UnsatModal";
+import TutorialModal from "./components/Modals/TutorialModal";
 
 const App = () => {
   const [formula, setFormula] = useState("");
@@ -337,6 +26,8 @@ const App = () => {
   const [conflictModalVisible, setConflictModalVisible] = useState(false);
   const [unsatModalVisible, setUnsatModalVisible] = useState(false);
   const [satModalVisible, setSatModalVisible] = useState(false);
+  const [tutorialModalVisible, setTutorialModalVisible] = useState(false);
+  const [learnedClauseHeuristic, setLearnedClauseHeuristic] = useState("uip"); // Dictates the heuristic for adding learned clauses
 
   useEffect(() => {
     checkImplications(activeVariables);
@@ -654,19 +345,28 @@ const App = () => {
       });
       fullgraph["κ"] = { parents: conflictParents };
 
-      const uips = findUIP(graph);
+      if (learnedClauseHeuristic === "uip") {
+        const uips = findUIP(graph);
 
-      const grandparents = findGrandparentsWithoutBlacklistedChildren(
-        fullgraph,
-        uips
-      );
+        const grandparents = findGrandparentsWithoutBlacklistedChildren(
+          fullgraph,
+          uips
+        );
 
-      const learned = learnClause(uips, grandparents);
-      setLearnedClause({
-        id: clauses.length + 1,
-        data: learned,
-        learned: true,
-      });
+        const learned = learnClauseUIP(uips, grandparents);
+        setLearnedClause({
+          id: clauses.length + 1,
+          data: learned,
+          learned: true,
+        });
+      } else if (learnedClauseHeuristic === "neg") {
+        const learned = learnClauseNEG(decisions);
+        setLearnedClause({
+          id: clauses.length + 1,
+          data: learned,
+          learned: true,
+        });
+      }
       if (!unsatFormula) {
         setConflictModalVisible(true);
       }
@@ -777,7 +477,7 @@ const App = () => {
     return children.some((child) => blacklist.includes(child));
   }
 
-  const learnClause = (uips, grandparents) => {
+  const learnClauseUIP = (uips, grandparents) => {
     const firstUip = uips.pop();
     const grandparent = grandparents[0];
     let learningClause = [];
@@ -793,6 +493,12 @@ const App = () => {
     }
 
     return learningClause;
+  };
+
+  const learnClauseNEG = (decisions) => {
+    return Object.keys(decisions)
+      .filter((key) => !decisions[key].implied)
+      .map((key) => (decisions[key].positive ? `-${key}` : key));
   };
 
   const addLearnedClause = () => {
@@ -903,31 +609,11 @@ const App = () => {
             display: "flex",
             marginRight: 8,
           }}
+          onClick={() => {
+            setTutorialModalVisible(true);
+          }}
         >
-          {/* <img src={menu} /> */}
-          {/* <p
-            style={{
-              padding: 0,
-              margin: 0,
-              marginRight: 20,
-              color: "#f2ca74",
-              fontSize: 15,
-              width: "fit-content",
-            }}
-          >
-            Tutorial
-          </p>
-          <p
-            style={{
-              padding: 0,
-              margin: 0,
-              color: "#f2ca74",
-              fontSize: 15,
-              width: "fit-content",
-            }}
-          >
-            About
-          </p> */}
+          <img src={menu} />
         </div>
       </div>
       <div style={{ padding: 10 }}>
@@ -938,16 +624,19 @@ const App = () => {
             onChange={(e) => setFormula(e.target.value)}
             placeholder="Enter your CNF formula here, e.g. (A,B)(-A,C)(-B,-C)"
             style={{
-              padding: "10px",
+              padding: 10,
               flexGrow: 1, // Makes the input expand to fill the available space
               border: "none",
               borderRadius: "5px 0px 0px 5px",
+              height: 14,
             }}
           />
-          <button
-            onClick={handleFormulaSubmit} // Changed from onSubmit
+          <div
+            onClick={handleFormulaSubmit}
             style={{
-              padding: "10px 20px",
+              fontFamily: "Sono, serif, Arial, sans-serif",
+              height: 14,
+              padding: "7px 10px 13px 10px",
               background: "#f2ca74",
               color: "#13161d",
               border: "none",
@@ -956,171 +645,32 @@ const App = () => {
             }}
           >
             Submit
-          </button>
+          </div>
         </div>
 
         {conflict && conflictModalVisible && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#fff",
-                padding: "20px",
-                borderRadius: "10px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                maxWidth: "400px",
-                width: "90%",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ color: "#945f19", marginBottom: "15px" }}>
-                Conflict detected! A learned clause can be added. 🤔
-              </p>
-              <button
-                onClick={() => addLearnedClause()}
-                style={{
-                  backgroundColor: "#f2ca74",
-                  padding: "10px 20px",
-                  color: "#13161d",
-                  border: "none",
-                  borderRadius: 5,
-                  cursor: "pointer",
-                  margin: 5,
-                  marginRight: 10,
-                  fontSize: "16px",
-                }}
-              >
-                <span style={{ margin: 0, padding: 0 }}>
-                  Add Learned Clause
-                </span>
-                <span style={{ marginLeft: 4, padding: 0, fontSize: 12 }}>
-                  💡
-                </span>
-              </button>
-              <button
-                onClick={() => setConflictModalVisible(false)}
-                style={{
-                  padding: "11px 20px",
-                  backgroundColor: "#000000",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          <ConflictModal
+            setConflictModalVisible={setConflictModalVisible}
+            addLearnedClause={addLearnedClause}
+          />
         )}
 
         {unsatFormula && unsatModalVisible && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#fff",
-                padding: "20px",
-                borderRadius: "10px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                maxWidth: "400px",
-                width: "90%",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ color: "#721c24", marginBottom: "15px" }}>
-                This formula is unsatisfiable! 😩
-              </p>
-
-              <button
-                onClick={() => setUnsatModalVisible(false)}
-                style={{
-                  padding: "11px 20px",
-                  backgroundColor: "#000000",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          <UnsatModal setUnsatModalVisible={setUnsatModalVisible} />
         )}
 
         {clauses.length > 0 && !!formulaSatisfied && satModalVisible && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#fff",
-                padding: "20px",
-                borderRadius: "10px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                maxWidth: "400px",
-                width: "90%",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ color: "#18522a", marginBottom: "15px" }}>
-                Hurray! We found a way to satisfy the function! 😁
-              </p>
-              <p>{formulaSatisfied}</p>
-              <button
-                onClick={() => setSatModalVisible(false)}
-                style={{
-                  padding: "11px 20px",
-                  backgroundColor: "#000000",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                }}
-              >
-                Done
-              </button>
-            </div>
-          </div>
+          <SatModal
+            setSatModalVisible={setSatModalVisible}
+            formulaSatisfied={formulaSatisfied}
+          />
+        )}
+        {tutorialModalVisible && (
+          <TutorialModal
+            setTutorialModalVisible={setTutorialModalVisible}
+            learnedClauseHeuristic={learnedClauseHeuristic}
+            setLearnedClauseHeuristic={setLearnedClauseHeuristic}
+          />
         )}
 
         <div style={{ marginTop: 5 }}>
@@ -1238,7 +788,7 @@ const App = () => {
           <div style={{}}>
             <div>
               <div style={{ display: "flex" }}>
-                <PlayzoneGraph
+                <Graph
                   onDropVariable={handleDropVariable}
                   playzoneData={decisions}
                   active={!conflict && !formulaSatisfied && !unsatFormula}
