@@ -233,6 +233,7 @@ const TutorialModal = ({
               >
                 How to Use CDCL Buddy
               </div>
+              {getOS()}
               <img src={demo} style={{ width: "100%" }} />
               <div
                 style={{
