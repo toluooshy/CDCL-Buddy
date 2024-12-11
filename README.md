@@ -86,7 +86,7 @@ Includes utility functions and custom hooks:
 ### Mobile App
 
 - Download from:
-  - [Apple App Store](https://apps.apple.com/gb/app/cdcl-buddy/id6738808478?uo=2)
+  - [Apple App Store](https://apps.apple.com/us/app/cdcl-buddy/id6738808478)
   - [Google Play Store](https://play.google.com/store/apps/details?id=com.cdclbuddy.cdclbuddy)
 
 ## Usage
@@ -136,7 +136,3 @@ We welcome contributions! To contribute:
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-## Contact
-
-For questions or feedback, contact the project maintainer at [toshinowo@princeton.edu](mailto:toshinowo@princeton.edu).
