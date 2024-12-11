@@ -1,70 +1,142 @@
-# Getting Started with Create React App
+# CDCL Buddy
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+CDCL Buddy is an interactive educational tool designed to demystify Conflict-Driven Clause Learning (CDCL) SAT solvers. It provides a hands-on learning experience through dynamic visualizations, drag-and-drop interactivity, and real-time solver feedback. The app is aimed at students and educators seeking an intuitive way to explore SAT-solving techniques.  
+![CDCL Buddy demo on desktop.](demo.gif "CDCL Buddy demo on desktop.")
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Interactive Visualizations**: View and manipulate implication graphs dynamically.
+- **Drag-and-Drop Interface**: Experiment with variable assignments to understand heuristics and their impact.
+- **Custom CDCL Solver**: Features conflict detection, clause learning, and non-chronological backtracking implemented in JavaScript.
+- **Tutorial Module**: Offers explanations of key concepts like conflict resolution, learned clauses, and decision heuristics.
+- **Multi-Platform Access**: Available as a web app and mobile app on iOS and Android.
 
-### `npm start`
+## Repository Directory
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+The repository is organized as follows:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### `src/components`
 
-### `npm test`
+Contains the core React components:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Graph/**: Components for visualizing and interacting with the implication graph.
 
-### `npm run build`
+  - `CustomEdge.js`: Custom edges for the graph visualization.
+  - `CustomNode.js`: Custom nodes for the graph visualization.
+  - `Graph.js`: Main graph rendering component.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Modals/**: Components for displaying modal dialogs related to SAT solving.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  - `ConflictModal.js`: Displays information about conflicts and learned clauses.
+  - `SatModal.js`: Shown when a satisfiable solution is found.
+  - `UnsatModal.js`: Shown when the SAT problem is unsatisfiable.
+  - `TutorialModal.js`: Interactive tutorial to guide users through CDCL concepts.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **UI/**: General UI components.
+  - `Clause.js`: Handles clause representation and interactions.
+  - `VariableBox.js`: Displays variables and their assignments.
 
-### `npm run eject`
+### `src/images`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Contains static assets used in the application, such as demo animations and graph images:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- `demo.gif`: An animated demonstration of the app’s functionality.
+- `graph1.png` to `graph5.png`: Sample graph images for tutorials or debugging.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### `src/utils`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Includes utility functions and custom hooks:
 
-## Learn More
+- `CustomHooks.js`: Contains reusable hooks for managing application state and interactivity.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Root Files
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **`App.js`**: The main React app entry point.
+- **`App.css`**: Global styles for the application.
+- **`index.js`**: Entry point for rendering the React app.
+- **`index.css`**: Base styles for the app.
+- **`setupTests.js`**: Configures testing utilities.
+- **`reportWebVitals.js`**: Performance monitoring.
 
-### Code Splitting
+### Other Files
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **`.gitignore`**: Specifies files and directories to ignore in version control.
+- **`package.json` & `package-lock.json`**: Manage project dependencies and scripts.
+- **`LICENSE`**: Contains the MIT License for the project.
+- **`README.md`**: This documentation file.
 
-### Analyzing the Bundle Size
+## Installation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Local Setup
 
-### Making a Progressive Web App
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/toluooshy/cdcl-buddy.git
+   cd cdcl-buddy
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm start
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Mobile App
 
-### Advanced Configuration
+- Download from:
+  - [Apple App Store](https://apps.apple.com/gb/app/cdcl-buddy/id6738808478?uo=2)
+  - [Google Play Store](https://play.google.com/store/apps/details?id=com.cdclbuddy.cdclbuddy)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Usage
 
-### Deployment
+### Input Format
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Enter a SAT problem in **CNF format** (e.g., `(A, B)(-A, C)(-B, -C)`) in the input box. Use the interactive graph to explore variable assignments and observe real-time solver updates.
 
-### `npm run build` fails to minify
+### Key Components
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Graph Visualization**: Nodes represent variables or decisions, while edges illustrate implications and conflicts.
+- **Conflict Modal**: Highlights conflicts and provides options to add learned clauses using heuristics like First UIP or negation.
+- **Tutorial Module**: Explains CDCL processes in a step-by-step manner for self-guided learning.
+
+## Development Overview
+
+### Frameworks and Libraries
+
+- **React**: Front-end framework for interactive UI.
+- **React Flow**: Dynamic graph rendering and manipulation.
+- **React Native**: Cross-platform mobile app support. For the React Native-specific repository, see [here](https://github.com/toluooshy/cdcl-buddy-app).
+
+### Core Logic
+
+The CDCL solver handles:
+
+- **Conflict Detection**: Identifies and resolves conflicts in the clause set.
+- **Clause Learning**: Adds learned clauses based on heuristics (e.g., First UIP).
+- **Backtracking**: Implements non-chronological backtracking to improve efficiency.
+
+## Contributing
+
+We welcome contributions! To contribute:
+
+1. Fork the repository.
+2. Create a new branch:
+   ```bash
+   git checkout -b feature-name
+   ```
+3. Commit changes and push:
+   ```bash
+   git commit -m "Add feature name"
+   git push origin feature-name
+   ```
+4. Open a pull request.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Contact
+
+For questions or feedback, contact the project maintainer at [toshinowo@princeton.edu](mailto:toshinowo@princeton.edu).

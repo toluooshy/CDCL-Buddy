@@ -317,7 +317,7 @@ const TutorialModal = ({
                 <ul>
                   <li>
                     Start with simple CNF formulas to familiarize yourself with
-                    the tool’s interface and solver behavior.
+                    the tool's interface and solver behavior.
                   </li>
                   <li>
                     Use the visual updates to observe how conflicts are detected

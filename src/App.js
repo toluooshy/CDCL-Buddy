@@ -11,24 +11,26 @@ import UnsatModal from "./components/Modals/UnsatModal";
 import TutorialModal from "./components/Modals/TutorialModal";
 
 const App = () => {
-  const [formula, setFormula] = useState("");
-  const [clauses, setClauses] = useState([]);
-  const [variables, setVariables] = useState({});
-  const [decisions, setDecisions] = useState({});
-  const [activeVariables, setActiveVariables] = useState({});
-  const [conflict, setConflict] = useState(false);
-  const [unsatFormula, setUnsatFormula] = useState(false);
-  const [formulaSatisfied, setFormulaSatisfied] = useState(null);
-  const [learnedClause, setLearnedClause] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [future, setFuture] = useState([]);
-  const [currentLevel, setCurrentLevel] = useState(1);
-  const [conflictModalVisible, setConflictModalVisible] = useState(false);
-  const [unsatModalVisible, setUnsatModalVisible] = useState(false);
-  const [satModalVisible, setSatModalVisible] = useState(false);
-  const [tutorialModalVisible, setTutorialModalVisible] = useState(false);
-  const [learnedClauseHeuristic, setLearnedClauseHeuristic] = useState("uip"); // Dictates the heuristic for adding learned clauses
+  // State variables for formula, clauses, and logic tracking
+  const [formula, setFormula] = useState(""); // Input formula in DNF
+  const [clauses, setClauses] = useState([]); // Parsed clauses
+  const [variables, setVariables] = useState({}); // All variables in formula
+  const [decisions, setDecisions] = useState({}); // User decisions on variables
+  const [activeVariables, setActiveVariables] = useState({}); // Current variable assignments
+  const [conflict, setConflict] = useState(false); // Conflict detection
+  const [unsatFormula, setUnsatFormula] = useState(false); // Unsatisfiable formula flag
+  const [formulaSatisfied, setFormulaSatisfied] = useState(null); // Formula satisfaction status
+  const [learnedClause, setLearnedClause] = useState(null); // Learned clause (if applicable)
+  const [history, setHistory] = useState([]); // History for undo functionality
+  const [future, setFuture] = useState([]); // Future states for redo functionality
+  const [currentLevel, setCurrentLevel] = useState(1); // Current decision level
+  const [conflictModalVisible, setConflictModalVisible] = useState(false); // Conflict modal visibility
+  const [unsatModalVisible, setUnsatModalVisible] = useState(false); // UNSAT modal visibility
+  const [satModalVisible, setSatModalVisible] = useState(false); // SAT modal visibility
+  const [tutorialModalVisible, setTutorialModalVisible] = useState(false); // Tutorial modal visibility
+  const [learnedClauseHeuristic, setLearnedClauseHeuristic] = useState("uip"); // Clause learning heuristic
 
+  // Effect: Check implications and conflicts when activeVariables change
   useEffect(() => {
     checkImplications(activeVariables);
     detectConflict(activeVariables);
@@ -37,8 +39,9 @@ const App = () => {
     }
   }, [activeVariables]);
 
+  // Parse the input formula in DNF and return a list of clauses
   const parseDNFFormula = (input) => {
-    const clausePattern = /\((.*?)\)/g;
+    const clausePattern = /\((.*?)\)/g; // Match clauses in parentheses
     const matches = [...input.matchAll(clausePattern)];
     return matches.map((match, index) => ({
       id: index + 1,
@@ -46,106 +49,111 @@ const App = () => {
     }));
   };
 
+  // Extract unique variables from the parsed clauses
   const extractVariables = (clauses) => {
     const vars = {};
     clauses.forEach((clause) => {
-      const clauseData = clause.data;
-      clauseData.forEach((literal) => {
+      clause.data.forEach((literal) => {
         const variableName = literal.startsWith("-")
-          ? literal.slice(1)
+          ? literal.slice(1) // Remove "-" if negated
           : literal;
         if (!(variableName in vars)) {
-          vars[variableName] = true;
+          vars[variableName] = true; // Initialize variable
         }
       });
     });
     return vars;
   };
 
+  // Handle submission of the formula
   const handleFormulaSubmit = (e) => {
-    e.preventDefault();
-    const parsedClauses = parseDNFFormula(formula);
-    setClauses(parsedClauses);
-    setVariables(extractVariables(parsedClauses));
-    setActiveVariables({});
-    setDecisions({});
-    setHistory([]);
-    setFuture([]);
-    setCurrentLevel(1);
-    setFormulaSatisfied(false);
-    setUnsatFormula(false);
-    setConflictModalVisible(false);
-    setUnsatModalVisible(false);
-    setSatModalVisible(false);
+    e.preventDefault(); // Prevent page reload
+    const parsedClauses = parseDNFFormula(formula); // Parse the formula
+    setClauses(parsedClauses); // Update clauses
+    setVariables(extractVariables(parsedClauses)); // Extract and set variables
+    setActiveVariables({}); // Reset active variables
+    setDecisions({}); // Clear decisions
+    setHistory([]); // Clear history
+    setFuture([]); // Clear future states
+    setCurrentLevel(1); // Reset decision level
+    setFormulaSatisfied(false); // Reset satisfaction status
+    setUnsatFormula(false); // Reset unsatisfiable status
+    setConflictModalVisible(false); // Hide conflict modal
+    setUnsatModalVisible(false); // Hide UNSAT modal
+    setSatModalVisible(false); // Hide SAT modal
   };
 
+  // Handle dropping a variable to make a decision
   const handleDropVariable = (item) => {
     const newDecision = {
       [item.name]: {
-        positive: item.positive,
-        level: currentLevel,
-        implied: false,
-        clauseid: null,
+        positive: item.positive, // Value of the variable
+        level: currentLevel, // Decision level
+        implied: false, // Explicit decision
+        clauseid: null, // No associated clause yet
         nodes: [],
         conflict: false,
       },
     };
 
-    setHistory((prev) => [...prev, { activeVariables, decisions }]);
-    setFuture([]);
-    setDecisions((prev) => ({ ...prev, ...newDecision }));
-    setActiveVariables((prev) => ({ ...prev, [item.name]: item.positive }));
-    setCurrentLevel(currentLevel + 1);
+    setHistory((prev) => [...prev, { activeVariables, decisions }]); // Save current state
+    setFuture([]); // Clear redo stack
+    setDecisions((prev) => ({ ...prev, ...newDecision })); // Update decisions
+    setActiveVariables((prev) => ({ ...prev, [item.name]: item.positive })); // Update active variables
+    setCurrentLevel(currentLevel + 1); // Increment decision level
   };
 
+  // Undo the last decision
   const handleUndo = () => {
     if (history.length > 0) {
       const lastState = history[history.length - 1];
-      setHistory((prev) => prev.slice(0, -1));
-      setFuture((prev) => [{ activeVariables, decisions }, ...prev]);
-      setActiveVariables(lastState.activeVariables);
-      setDecisions(lastState.decisions);
-      setFormulaSatisfied(false);
-      setUnsatFormula(false);
-      setCurrentLevel(currentLevel - 1);
+      setHistory((prev) => prev.slice(0, -1)); // Remove last state from history
+      setFuture((prev) => [{ activeVariables, decisions }, ...prev]); // Save current state to future
+      setActiveVariables(lastState.activeVariables); // Restore active variables
+      setDecisions(lastState.decisions); // Restore decisions
+      setFormulaSatisfied(false); // Reset satisfaction status
+      setUnsatFormula(false); // Reset unsatisfiable status
+      setCurrentLevel(currentLevel - 1); // Decrement decision level
     }
   };
 
+  // Redo the last undone decision
   const handleRedo = () => {
     if (future.length > 0) {
       const nextState = future[0];
-      setFuture((prev) => prev.slice(1));
-      setHistory((prev) => [...prev, { activeVariables, decisions }]);
-      setActiveVariables(nextState.activeVariables);
-      setDecisions(nextState.decisions);
-      setCurrentLevel(currentLevel + 1);
+      setFuture((prev) => prev.slice(1)); // Remove from future stack
+      setHistory((prev) => [...prev, { activeVariables, decisions }]); // Save to history
+      setActiveVariables(nextState.activeVariables); // Restore active variables
+      setDecisions(nextState.decisions); // Restore decisions
+      setCurrentLevel(currentLevel + 1); // Increment decision level
     }
   };
 
+  // Reset all states to their initial values
   const handleReset = () => {
-    setFormula("");
-    setClauses([]);
-    setVariables({});
-    setActiveVariables({});
-    setDecisions({});
-    setHistory([]);
-    setFuture([]);
-    setCurrentLevel(1);
-    setFormulaSatisfied(false);
-    setUnsatFormula(false);
-    setConflictModalVisible(false);
-    setUnsatModalVisible(false);
-    setSatModalVisible(false);
+    setFormula(""); // Clear formula
+    setClauses([]); // Clear clauses
+    setVariables({}); // Clear variables
+    setActiveVariables({}); // Clear active variables
+    setDecisions({}); // Clear decisions
+    setHistory([]); // Clear history
+    setFuture([]); // Clear future states
+    setCurrentLevel(1); // Reset decision level
+    setFormulaSatisfied(false); // Reset satisfaction status
+    setUnsatFormula(false); // Reset unsatisfiable status
+    setConflictModalVisible(false); // Hide conflict modal
+    setUnsatModalVisible(false); // Hide UNSAT modal
+    setSatModalVisible(false); // Hide SAT modal
   };
 
+  // Helper to transform array based on a base variable
   function transformArray(inputArray, baseVariable) {
-    const normalizedBase = baseVariable.replace("-", "");
-
+    const normalizedBase = baseVariable.replace("-", ""); // Normalize base variable
     return inputArray
-      .filter((element) => element.replace("-", "") !== normalizedBase)
+      .filter((element) => element.replace("-", "") !== normalizedBase) // Exclude base variable
       .map((element) =>
         element.startsWith("-") ? element.slice(1) : `-${element}`
-      );
+      ); // Negate the remaining variables
   }
 
   const checkImplications = (activeVariables) => {
@@ -562,47 +570,48 @@ const App = () => {
   };
 
   return (
+    // Main container div for the application with global styles
     <div
       style={{
-        fontFamily: "Sono, serif, Arial, sans-serif",
-        backgroundColor: "#323741",
-        position: "fixed",
+        fontFamily: "Sono, serif, Arial, sans-serif", // Sets the font
+        backgroundColor: "#323741", // Dark background for the app
+        position: "fixed", // Fixes the app to occupy the entire screen
         top: 0,
         bottom: 0,
         left: 0,
         right: 0,
-        overflowY: "scroll",
-        userSelect: "none",
+        overflowY: "scroll", // Enables vertical scrolling
+        userSelect: "none", // Disables text selection
       }}
     >
+      {/* Header section with a gradient background and title */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignContent: "center",
-          background: "linear-gradient(to top, #222834, #13161d)",
+          justifyContent: "space-between", // Ensures content in the header is spaced apart
+          alignContent: "center", // Vertically centers content
+          background: "linear-gradient(to top, #222834, #13161d)", // Gradient background
           padding: 10,
-          borderBottom: ".25px solid #555",
+          borderBottom: ".25px solid #555", // Thin bottom border
         }}
       >
+        {/* App title */}
         <div style={{ width: "fit-content" }}>
           <span
             style={{
               flex: 1,
-              padding: 0,
-              margin: 0,
-              background: "linear-gradient(to right, #f2ca74, #db69bb)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              fontSize: 28,
-              fontWeight: 600,
-              marginBottom: 10,
-              width: "fit-content",
+              background: "linear-gradient(to right, #f2ca74, #db69bb)", // Text gradient
+              WebkitBackgroundClip: "text", // Clips gradient to the text
+              WebkitTextFillColor: "transparent", // Makes the background color visible
+              fontSize: 28, // Title font size
+              fontWeight: 600, // Bold font weight
             }}
           >
             CDCL Buddy
           </span>
         </div>
+
+        {/* Menu button to open tutorial modal */}
         <div
           style={{
             flex: 0,
@@ -610,55 +619,57 @@ const App = () => {
             marginRight: 8,
           }}
           onClick={() => {
-            setTutorialModalVisible(true);
+            setTutorialModalVisible(true); // Opens tutorial modal
           }}
         >
-          <img src={menu} />
+          <img src={menu} /> {/* Menu icon */}
         </div>
       </div>
+
+      {/* Main content area */}
       <div style={{ padding: 10 }}>
+        {/* Input for the user to enter the formula */}
         <div style={{ display: "flex", alignItems: "center" }}>
           <input
             type="text"
             value={formula}
-            onChange={(e) => setFormula(e.target.value)}
-            placeholder="Enter your CNF formula here, e.g. (A,B)(-A,C)(-B,-C)"
+            onChange={(e) => setFormula(e.target.value)} // Updates formula state
+            placeholder="Enter your CNF formula here, e.g. (A,B)(-A,C)(-B,-C)" // Input hint
             style={{
-              padding: 10,
-              flexGrow: 1, // Makes the input expand to fill the available space
+              padding: 10, // Padding inside the input box
+              flexGrow: 1, // Expands to fill available space
               border: "none",
-              borderRadius: "5px 0px 0px 5px",
-              height: 14,
+              borderRadius: "5px 0px 0px 5px", // Rounded corners for the left side
+              height: 14, // Input height
             }}
           />
           <div
-            onClick={handleFormulaSubmit}
+            onClick={handleFormulaSubmit} // Submits the formula
             style={{
               fontFamily: "Sono, serif, Arial, sans-serif",
               height: 14,
-              padding: "7px 10px 13px 10px",
-              background: "#f2ca74",
-              color: "#13161d",
+              padding: "7px 10px 13px 10px", // Padding for the button
+              background: "#f2ca74", // Button background
+              color: "#13161d", // Button text color
               border: "none",
-              borderRadius: "0px 5px 5px 0px",
-              cursor: "pointer",
+              borderRadius: "0px 5px 5px 0px", // Rounded corners for the right side
+              cursor: "pointer", // Pointer cursor for clickability
             }}
           >
             Submit
           </div>
         </div>
 
+        {/* Conditional rendering for modals */}
         {conflict && conflictModalVisible && (
           <ConflictModal
             setConflictModalVisible={setConflictModalVisible}
             addLearnedClause={addLearnedClause}
           />
         )}
-
         {unsatFormula && unsatModalVisible && (
           <UnsatModal setUnsatModalVisible={setUnsatModalVisible} />
         )}
-
         {clauses.length > 0 && !!formulaSatisfied && satModalVisible && (
           <SatModal
             setSatModalVisible={setSatModalVisible}
@@ -673,23 +684,25 @@ const App = () => {
           />
         )}
 
+        {/* Section for variables and actions */}
         <div style={{ marginTop: 5 }}>
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "space-between", // Space between variable list and actions
               marginBottom: 5,
             }}
           >
+            {/* Displaying variables */}
             <div
               style={{
                 display: "flex",
-                flexWrap: "wrap",
-                marginLeft: -5,
+                flexWrap: "wrap", // Wrap variables into multiple lines if needed
+                marginLeft: -5, // Negative margin for spacing adjustment
               }}
             >
               {Object.entries(variables)
-                .sort(([a], [b]) => a.localeCompare(b)) // Sort by variable name (key)
+                .sort(([a], [b]) => a.localeCompare(b)) // Alphabetically sorts variables
                 .map(([name, positive]) => (
                   <VariableBox
                     key={name}
@@ -698,29 +711,30 @@ const App = () => {
                     onDragStart={
                       !conflict && !formulaSatisfied && !unsatFormula
                         ? () => {}
-                        : null
+                        : null // Prevents dragging during conflicts or solved states
                     }
-                    active={!conflict && !formulaSatisfied && !unsatFormula}
+                    active={!conflict && !formulaSatisfied && !unsatFormula} // Toggles interactivity
                     onToggle={() => {
                       setVariables((prev) => ({
                         ...prev,
-                        [name]: !prev[name],
+                        [name]: !prev[name], // Toggles the variable state
                       }));
                     }}
                   />
                 ))}
+
+              {/* Button to add learned clause during conflicts */}
               {!!conflict && !unsatFormula ? (
                 <div
-                  onClick={() => addLearnedClause()}
+                  onClick={() => addLearnedClause()} // Adds a learned clause
                   style={{
-                    backgroundColor: "#f2ca74",
-                    padding: "4px 8px 4px 8px",
+                    backgroundColor: "#f2ca74", // Button color
+                    padding: "4px 8px", // Button padding
                     color: "#13161d",
-                    borderRadius: 5,
-                    cursor: "pointer",
+                    borderRadius: 5, // Rounded corners
+                    cursor: "pointer", // Pointer cursor
                     margin: 5,
-                    marginLeft: 5,
-                    fontSize: 13,
+                    fontSize: 13, // Button font size
                   }}
                 >
                   <span style={{ margin: 0, padding: 0 }}>
@@ -733,49 +747,50 @@ const App = () => {
               ) : null}
             </div>
 
+            {/* Action buttons for undo, redo, and reset */}
             <div
               style={{
                 display: "flex",
                 height: "fit-content",
                 marginTop: 5,
-                fontSize: 13,
+                fontSize: 13, // Font size for buttons
               }}
             >
               <div
-                onClick={handleUndo}
-                disabled={history.length === 0}
+                onClick={handleUndo} // Undo action
+                disabled={history.length === 0} // Disabled if no history
                 style={{
                   padding: "5px 10px",
-                  background: history.length === 0 ? "#707682" : "#db69bb",
+                  background: history.length === 0 ? "#707682" : "#db69bb", // Color based on state
                   color: "white",
                   border: "none",
                   borderRadius: "5px",
                   marginRight: "10px",
-                  cursor: history.length === 0 ? "not-allowed" : "pointer",
+                  cursor: history.length === 0 ? "not-allowed" : "pointer", // Changes cursor
                 }}
               >
                 Undo
               </div>
               <div
-                onClick={handleRedo}
-                disabled={future.length === 0}
+                onClick={handleRedo} // Redo action
+                disabled={future.length === 0} // Disabled if no future actions
                 style={{
                   padding: "5px 10px",
-                  background: future.length === 0 ? "#707682" : "#db69bb",
+                  background: future.length === 0 ? "#707682" : "#db69bb", // Color based on state
                   color: "white",
                   border: "none",
                   borderRadius: "5px",
                   marginRight: "10px",
-                  cursor: future.length === 0 ? "not-allowed" : "pointer",
+                  cursor: future.length === 0 ? "not-allowed" : "pointer", // Changes cursor
                 }}
               >
                 Redo
               </div>
               <div
-                onClick={handleReset}
+                onClick={handleReset} // Reset action
                 style={{
                   padding: "5px 10px",
-                  background: "red",
+                  background: "red", // Red for reset
                   color: "white",
                   border: "none",
                   borderRadius: "5px",
@@ -785,47 +800,50 @@ const App = () => {
               </div>
             </div>
           </div>
-          <div style={{}}>
-            <div>
-              <div style={{ display: "flex" }}>
-                <Graph
-                  onDropVariable={handleDropVariable}
-                  playzoneData={decisions}
-                  active={!conflict && !formulaSatisfied && !unsatFormula}
-                />
-              </div>
 
-              {!!formulaSatisfied ? (
-                <p style={{ color: "#ffffff" }}>
-                  Satisfying configuration: {formulaSatisfied}
-                </p>
-              ) : null}
+          {/* Graph area */}
+          <div style={{}}>
+            <div style={{ display: "flex" }}>
+              <Graph
+                onDropVariable={handleDropVariable} // Handles variable drops
+                playzoneData={decisions} // Passes decision data to the graph
+                active={!conflict && !formulaSatisfied && !unsatFormula} // Toggles interactivity
+              />
+            </div>
+
+            {/* Display the satisfying configuration if present */}
+            {!!formulaSatisfied ? (
+              <p style={{ color: "#ffffff" }}>
+                Satisfying configuration: {formulaSatisfied}
+              </p>
+            ) : null}
+
+            {/* Clause display area */}
+            <div
+              style={{
+                overflowY: "scroll", // Scrollable clause list
+                height: 180,
+                backgroundColor: "#707682",
+                borderRadius: 8,
+                marginTop: 5,
+                padding: "0px 10px", // Padding for readability
+              }}
+            >
               <div
                 style={{
-                  overflowY: "scroll",
-                  height: 180,
-                  backgroundColor: "#707682",
-                  borderRadius: 8,
-                  marginTop: 5,
-                  padding: "0px 10px",
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  flexWrap: "wrap",
+                  paddingBottom: 10,
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    flexWrap: "wrap",
-                    paddingBottom: 10,
-                  }}
-                >
-                  {clauses.map((clause, index) => (
-                    <Clause
-                      key={index}
-                      clause={clause}
-                      activeVariables={activeVariables}
-                    />
-                  ))}
-                </div>
+                {clauses.map((clause, index) => (
+                  <Clause
+                    key={index}
+                    clause={clause}
+                    activeVariables={activeVariables}
+                  />
+                ))}
               </div>
             </div>
           </div>
